@@ -11,6 +11,8 @@ jobs:
       contents: read
       pull-requests: write
       issues: write
+      id-token: write
+      actions: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,6 +20,16 @@ jobs:
           fetch-depth: 0
 
       - name: Run Claude Security Review
-        uses: anthropics/claude-code-security-review@main
+        uses: anthropics/claude-code-action@v1
         with:
-          claude-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Review this PR for security vulnerabilities. Focus on:
+            - Hardcoded secrets, passwords, API keys, or credentials
+            - SQL injection and other injection attacks
+            - Insecure authentication or password handling
+            - Sensitive data exposure
+            - Any other OWASP Top 10 vulnerabilities
+
+            For each finding, explain the vulnerability, its severity, and how to fix it.
+            Comment directly on the relevant lines in the PR.
