@@ -1,37 +1,35 @@
-name: Claude Code
+name: Claude Security Review
 
 on:
-  issue_comment:
-    types: [created]
-  pull_request_review_comment:
-    types: [created]
-  pull_request_review:
-    types: [submitted]
   pull_request:
     types: [opened, synchronize]
 
 jobs:
-  claude:
-    if: |
-      (github.event_name == 'pull_request') ||
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude'))
+  security-review:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       pull-requests: write
       issues: write
       id-token: write
       actions: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
-      - name: Run Claude Code
-        id: claude
+      - name: Run Claude Security Review
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Review this PR for security vulnerabilities. Focus on:
+            - Hardcoded secrets, passwords, API keys, or credentials
+            - SQL injection and other injection attacks
+            - Insecure authentication or password handling
+            - Sensitive data exposure
+            - Any other OWASP Top 10 vulnerabilities
+
+            For each finding, explain the vulnerability, its severity, and how to fix it.
+            Comment directly on the relevant lines in the PR.
